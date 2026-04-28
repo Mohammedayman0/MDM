@@ -929,17 +929,19 @@ elif step == 4:
     """, unsafe_allow_html=True)
 
     if "golden_overrides" not in st.session_state:
-        st.session_state.golden_overrides = {}
+        st.session_state["golden_overrides"] = {}
 
     show_n = safe_slider("عدد المجموعات:", len(clusters), key="merge_limit")
+    golden_overrides = st.session_state.get("golden_overrides", {})
 
     for i, cluster in enumerate(clusters[:show_n]):
         auto_golden = pick_golden_record(cluster["names"])
         ok  = f"golden_{i}"
-        cur = st.session_state.golden_overrides.get(ok, auto_golden)
+        ccur = golden_overrides.get(ok, auto_golden)
         sc_val = cluster["max_score"]
         sc_class = "score-high" if sc_val >= 85 else ("score-medium" if sc_val >= 70 else "score-low")
 
+        
         with st.expander(f"GRP-{i+1:03d}  ·  {len(cluster['names'])} أسماء  ·  {sc_val}% تشابه", expanded=(i<5)):
             c_names, c_golden = st.columns([1,1], gap="large")
             with c_names:
