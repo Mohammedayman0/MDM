@@ -786,6 +786,7 @@ elif step == 3:
             "📋 نتائج المطابقة", "🧩 المجموعات والكود (GRP)", "📊 توزيع التشابه"
         ])
 
+        
         with tab_raw:
             cf1, cf2 = st.columns([1, 2])
             with cf1: filt = st.selectbox("فلتر:", ["الكل", "تطابق تام", "متشابه"])
@@ -797,8 +798,8 @@ elif step == 3:
                 if val >= 85: return "background:#dcfce7;color:#15803d;font-weight:700"
                 if val >= 70: return "background:#fef9c3;color:#a16207;font-weight:700"
                 return "background:#fee2e2;color:#dc2626;font-weight:700"
-           st.dataframe(disp, use_container_width=True, height=400)
-            st.caption(f"عرض {len(disp):,} من {total_matches:,}")
+                st.dataframe(disp, use_container_width=True, height=400)
+                st.caption(f"عرض {len(disp):,} من {total_matches:,}")
 
         with tab_clusters:
             st.markdown("""
