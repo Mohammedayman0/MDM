@@ -937,7 +937,7 @@ elif step == 4:
     for i, cluster in enumerate(clusters[:show_n]):
         auto_golden = pick_golden_record(cluster["names"])
         ok  = f"golden_{i}"
-        ccur = golden_overrides.get(ok, auto_golden)
+        cur = golden_overrides.get(ok, auto_golden)
         sc_val = cluster["max_score"]
         sc_class = "score-high" if sc_val >= 85 else ("score-medium" if sc_val >= 70 else "score-low")
 
