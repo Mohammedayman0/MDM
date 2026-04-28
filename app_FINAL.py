@@ -797,8 +797,8 @@ elif step == 3:
                 if val >= 85: return "background:#dcfce7;color:#15803d;font-weight:700"
                 if val >= 70: return "background:#fef9c3;color:#a16207;font-weight:700"
                 return "background:#fee2e2;color:#dc2626;font-weight:700"
-            st.dataframe(disp.style.applymap(hl, subset=["نسبة التشابه"]),
-                          width='stretch', height=400)
+            st.dataframe(disp, use_container_width=True, height=400)
+            
             st.caption(f"عرض {len(disp):,} من {total_matches:,}")
 
         with tab_clusters:
