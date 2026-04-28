@@ -810,7 +810,7 @@ elif step == 3:
                 الكود <code>GRP-001</code> يُستخدم في الدمج.
             </div>
             """, unsafe_allow_html=True)
-            show_limit = safe_slider("عدد المجموعات:", len(clusters)), min(20, len(clusters)), key="cl_limit")
+            show_limit = safe_slider("عدد المجموعات:", len(clusters)), min(20, len(clusters), key="cl_limit")
             for i, cluster in enumerate(clusters[:show_limit]):
                 golden = pick_golden_record(cluster["names"])
                 sc_val = cluster["max_score"]
