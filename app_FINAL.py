@@ -22,7 +22,7 @@ def safe_slider(label, max_val, default=20, key=None):
 
 # ─── Page Config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="الريكوردات الذهبية | MDM",
+    page_title="Golden Data| MDM",
     page_icon="🏅",
     layout="wide",
     initial_sidebar_state="collapsed",
