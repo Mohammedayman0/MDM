@@ -527,7 +527,7 @@ st.markdown(f"""
 <div class="hero">
     <div class="hero-icon">🏅</div>
     <div class="hero-text">
-        <h1>الريكوردات الذهبية</h1>
+        <h1>Golden Data </h1>
         <p class="sub">Master Data Management · Arabic Name Deduplication & Merge</p>
         <p class="tagline">✦ Let's Master your Data ✦</p>
     </div>
