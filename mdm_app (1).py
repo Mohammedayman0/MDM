@@ -338,33 +338,69 @@ def render_profile(df, label=""):
 # ──────────────────────────────────────────────────────────────────────────────
 def run_matching(files_dfs, rules, prog=None):
     results=[]
+    seen_pairs=set()  # deduplicate (rule, fi, ri, fj, rj) globally
+
+    # Only compare each ordered (fi,fj) pair once; within same file skip ii>=jj
     pairs=[(i,j) for i in range(len(files_dfs)) for j in range(i,len(files_dfs))]
     total=sum(len(files_dfs[i][1])*(len(files_dfs[j][1]) if i!=j else len(files_dfs[j][1])) for i,j in pairs) or 1
     done=0
+
     for rule in rules:
+        rule_name=rule["name"]
         for fi,fj in pairs:
             li,dfi=files_dfs[fi]; lj,dfj=files_dfs[fj]
+
+            # Get configs strictly by file_idx
             cfgi=[c for c in rule["columns"] if c["file_idx"]==fi]
             cfgj=[c for c in rule["columns"] if c["file_idx"]==fj]
+
+            # When fi==fj we still need configs — use same list but skip self-comparison
+            if fi==fj:
+                if not cfgi: continue
+                cfgj=cfgi  # same file, same columns
+
             if not cfgi or not cfgj: continue
-            ki=[[normalize_text(str(dfi[c["col"]].iloc[r]) if c["col"] in dfi.columns else "") for c in cfgi] for r in range(len(dfi))]
-            kj=[[normalize_text(str(dfj[c["col"]].iloc[r]) if c["col"] in dfj.columns else "") for c in cfgj] for r in range(len(dfj))]
+
+            ki=[[normalize_text(str(dfi[c["col"]].iloc[r]) if c["col"] in dfi.columns else "") for c in cfgi]
+                for r in range(len(dfi))]
+            kj=[[normalize_text(str(dfj[c["col"]].iloc[r]) if c["col"] in dfj.columns else "") for c in cfgj]
+                for r in range(len(dfj))]
+
             same=(fi==fj)
+
             for ii in range(len(dfi)):
                 if prog and done%150==0: prog.progress(min(done/total,.99))
                 done+=1
                 if not any(ki[ii]): continue
-                for jj in range(ii+1 if same else 0, len(dfj)):
+
+                # Within same file: jj must be strictly > ii (no self-match, no reverse duplicate)
+                jj_start = ii+1 if same else 0
+
+                for jj in range(jj_start, len(dfj)):
+                    # Extra guard: never match a row to itself across any scenario
+                    if fi==fj and ii==jj: continue
+
                     if not any(kj[jj]): continue
+
+                    # Global deduplication key (canonical order)
+                    pair_key=(rule_name, fi, min(ii,jj) if same else ii, fj, max(ii,jj) if same else jj)
+                    if pair_key in seen_pairs: continue
+                    seen_pairs.add(pair_key)
+
                     scores=[]; ok=True
                     for k,(ci,cj) in enumerate(zip(cfgi,cfgj)):
                         a,b=ki[ii][k],kj[jj][k]
-                        sc=100 if ci["match_type"]=="exact" else fuzz.token_sort_ratio(a,b)
+                        # FIX: exact match compares actual values, not always 100
+                        if ci["match_type"]=="exact":
+                            sc=100 if a==b else 0
+                        else:
+                            sc=fuzz.token_sort_ratio(a,b)
                         scores.append(sc)
                         if sc<ci["threshold"]: ok=False; break
                     if not ok: continue
+
                     avg=round(sum(scores)/len(scores))
-                    rec={"Rule":rule["name"],"Rule_Merge":rule.get("merge_mode","auto"),
+                    rec={"Rule":rule_name,"Rule_Merge":rule.get("merge_mode","auto"),
                          "Sys_A":li,"Row_A":ii+2,"Sys_B":lj,"Row_B":jj+2,
                          "Avg_Score":avg,"Status":"Exact Match" if avg==100 else "Similar",
                          "_fi":fi,"_fj":fj,"_ri":ii,"_rj":jj}
@@ -373,6 +409,7 @@ def run_matching(files_dfs, rules, prog=None):
                     for k,cj in enumerate(cfgj):
                         rec[f"B:{cj['col']}"]=str(dfj[cj["col"]].iloc[jj]) if cj["col"] in dfj.columns else ""
                     results.append(rec)
+
     if prog: prog.progress(1.0)
     return pd.DataFrame(results) if results else pd.DataFrame()
 
